@@ -5,8 +5,20 @@ RSpec.describe BCI do
     # come back to this if we need it
   end
 
-  it 'interprets strings'
-  it 'sets and gets local variables'
+  it 'interprets strings' do
+    bci = interpret("'abc'")
+    assert_object bci.current_value,
+                  class: bci.stringClass,
+                  data:  "abc"
+  end
+
+  it 'sets and gets local variables' do
+    bci = interpret("a = 'abc'; b = 'def'; a")
+    assert_object bci.current_value, data: "abc"
+
+    bci = interpret("a = 'abc'; b = 'def'; b")
+    assert_object bci.current_value, data: "def"
+  end
 
   describe 'class' do
     it 'defines classes the class as a constant under User'
@@ -22,8 +34,15 @@ RSpec.describe BCI do
   end
 
   describe 'toplevel' do
-    it 'sets self to main'
-    it 'has no local variables'
+    it 'sets self to main' do
+      bci = interpret("self")
+      expect(bci.current_value).to equal bci.mainObject
+    end
+
+    it 'has no local variables' do
+      bci = interpret("")
+      expect(bci.stack.last.locals).to be_empty
+    end
   end
 
   describe 'invoking methods' do
