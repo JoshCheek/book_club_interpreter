@@ -32,6 +32,13 @@ RSpec.describe BCI do
                   data:  "abc"
   end
 
+  it 'interprets multiple expressions' do
+    bci = interpret("'a'; 'b'")
+    assert_object bci.current_value,
+                  class: bci.string_class,
+                  data:  "b"
+  end
+
   it 'sets and gets local variables' do
     bci = interpret("a = 'abc'; b = 'def'; a")
     assert_object bci.current_value, data: "abc"

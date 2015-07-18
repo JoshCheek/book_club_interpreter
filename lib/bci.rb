@@ -65,6 +65,10 @@ class BCI
     when :str
       data = ast.children[0]
       emit class: string_class, data: data
+    when :begin
+      ast.children.each do |child|
+        interpret_ast child
+      end
     else raise "Unknown AST: #{ast.inspect}"
     end
   end
