@@ -56,7 +56,7 @@ class BCI
 
   private
 
-  def emit(object)
+  def current_value=(object)
     stack.last[:return_value] = object
   end
 
@@ -64,11 +64,21 @@ class BCI
     case ast.type
     when :str
       data = ast.children[0]
-      emit class: string_class, data: data
+      self.current_value = {
+        class: string_class,
+        data:  data
+      }
     when :begin
       ast.children.each do |child|
         interpret_ast child
       end
+    when :lvasgn
+      name = ast.children[0]
+      interpret_ast(ast.children[1])
+      stack.last[:locals][name] = current_value
+    when :lvar
+      name = ast.children[0]
+      self.current_value = stack.last[:locals][name]
     else raise "Unknown AST: #{ast.inspect}"
     end
   end
