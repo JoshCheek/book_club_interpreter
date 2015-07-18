@@ -1,6 +1,26 @@
 require 'bci'
 
 RSpec.describe BCI do
+  def interpret(code)
+    ast = BCI.parse(code)
+    bci = BCI.new(ast: ast, stdout: "idk")
+    bci.interpret
+    bci
+  end
+
+  def assert_object(object, assertions)
+    assertions.each do |type, value|
+      case type
+      when :class
+        expect(object[:class]).to equal value
+      when :data
+        expect(object[:data]).to eq value
+      else
+        raise "Unknown assertion type: #{type.inspect}"
+      end
+    end
+  end
+
   describe 'setting up the world' do
     # come back to this if we need it
   end
@@ -8,7 +28,7 @@ RSpec.describe BCI do
   it 'interprets strings' do
     bci = interpret("'abc'")
     assert_object bci.current_value,
-                  class: bci.stringClass,
+                  class: bci.string_class,
                   data:  "abc"
   end
 
@@ -36,7 +56,10 @@ RSpec.describe BCI do
   describe 'toplevel' do
     it 'sets self to main' do
       bci = interpret("self")
-      expect(bci.current_value).to equal bci.mainObject
+      expect(bci.current_value).to equal bci.main_object
+      assert_object bci.main_object,
+                    class: bci.objectClass,
+                    ivars: {}
     end
 
     it 'has no local variables' do
