@@ -1,3 +1,12 @@
 #!/usr/bin/env ruby
 
+lib_dir = File.expand_path('../lib', __dir__)
+$LOAD_PATH.unshift(lib_dir)
+require 'bci'
+
 ruby_filename = ARGV[0]
+ruby_code     = File.read(ruby_filename)
+
+ast           = BCI.parse(ruby_code)
+interpreter   = BCI.new(ast: ast, stdout: $stdout)
+interpreter.interpret
