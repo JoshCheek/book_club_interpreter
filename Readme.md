@@ -54,7 +54,7 @@ puts user.name
 We need to Interpret it:
 
 * From the outside:
-  * `bin/bci print_username.rb` and it prints `Josh`
+  * `bin/bci examples/print_username.rb` and it prints `Josh`
 * From the inside:
   * We should see that there is now a class "User"
     * with instance methods "initialize", "name", "name="
