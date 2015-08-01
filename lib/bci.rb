@@ -17,7 +17,11 @@ class BCI
     Parser::Ruby22.parse(code)
   end
 
-  attr_accessor :stack, :object_class, :string_class, :main_object
+  attr_accessor :stack,
+                :object_class,
+                :string_class,
+                :main_object,
+                :nil_object
 
   def initialize(ast:, stdout:)
     @ast, @stdout = ast, stdout
@@ -34,7 +38,8 @@ class BCI
 
     self.main_object = {
       ivars:        {},
-      class:        object_class
+      class:        object_class,
+      nil:          nil_object
     }
 
     toplevel_binding = {
@@ -81,6 +86,8 @@ class BCI
       self.current_value = stack.last[:locals][name]
     when :self
       self.current_value = stack.last[:self]
+    when :nil
+      self.current_value = stack.last[:nil]
     else raise "Unknown AST: #{ast.inspect}"
     end
   end

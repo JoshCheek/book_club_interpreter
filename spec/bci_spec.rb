@@ -34,6 +34,11 @@ RSpec.describe BCI do
                   data:  "abc"
   end
 
+  it 'interprets nil' do
+    bci = interpret('nil')
+    expect(bci.current_value).to equal bci.nil_object
+  end
+
   it 'interprets multiple expressions' do
     bci = interpret("'a'; 'b'")
     assert_object bci.current_value,
