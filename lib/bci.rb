@@ -1,7 +1,7 @@
 require 'parser/ruby22'
 require 'pry'
 
-# * Objects   - instance variables, pointer to its class
+# * Objects - instance variables, pointer to its class
 # * Classes
 #   - Classy things
 #     * instance methods
@@ -17,7 +17,7 @@ class BCI
     Parser::Ruby22.parse(code)
   end
 
-  attr_accessor :stack, :object_class, :string_class
+  attr_accessor :stack, :object_class, :string_class, :main_object
 
   def initialize(ast:, stdout:)
     @ast, @stdout = ast, stdout
@@ -32,13 +32,13 @@ class BCI
     self.string_class = {
     }
 
-    main             = {
+    self.main_object = {
       ivars:        {},
       class:        object_class
     }
 
     toplevel_binding = {
-      self:         main,
+      self:         main_object,
       locals:       {},
       return_value: ??,
     }
@@ -79,6 +79,8 @@ class BCI
     when :lvar
       name = ast.children[0]
       self.current_value = stack.last[:locals][name]
+    when :self
+      self.current_value = stack.last[:self]
     else raise "Unknown AST: #{ast.inspect}"
     end
   end

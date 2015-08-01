@@ -9,14 +9,16 @@ RSpec.describe BCI do
   end
 
   def assert_object(object, assertions)
-    assertions.each do |type, value|
-      case type
+    assertions.each do |assertion_type, value|
+      case assertion_type
       when :class
         expect(object[:class]).to equal value
       when :data
         expect(object[:data]).to eq value
+      when :ivars
+        expect(object[:ivars]).to eq value
       else
-        raise "Unknown assertion type: #{type.inspect}"
+        raise "Unknown assertion type: #{assertion_type.inspect}"
       end
     end
   end
@@ -65,7 +67,7 @@ RSpec.describe BCI do
       bci = interpret("self")
       expect(bci.current_value).to equal bci.main_object
       assert_object bci.main_object,
-                    class: bci.objectClass,
+                    class: bci.object_class,
                     ivars: {}
     end
 
