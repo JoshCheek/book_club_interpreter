@@ -21,12 +21,18 @@ class BCI
                 :object_class,
                 :string_class,
                 :main_object,
-                :nil_object
+                :nil_object,
+                :classy_class
 
   def initialize(ast:, stdout:)
     @ast, @stdout = ast, stdout
 
+    self.classy_class = {}
+
     self.object_class = {
+      constants: {},
+      class: classy_class
+
       # * instance methods
       # * pointer to its superclass
       # * instance variables
@@ -56,7 +62,7 @@ class BCI
   end
 
   def interpret
-    interpret_ast @ast if @ast 
+    interpret_ast @ast if @ast
   end
 
   private
@@ -88,6 +94,15 @@ class BCI
       self.current_value = stack.last[:self]
     when :nil
       self.current_value = stack.last[:nil]
+    when :class
+      class_name = ast.children[0].children.last
+      self.object_class[:constants][class_name] = {
+        class: classy_class,
+        ivars: {},
+        methods: {},
+        superclass: object_class
+      }
+
     else raise "Unknown AST: #{ast.inspect}"
     end
   end

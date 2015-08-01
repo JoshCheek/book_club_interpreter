@@ -12,11 +12,15 @@ RSpec.describe BCI do
     assertions.each do |assertion_type, value|
       case assertion_type
       when :class
-        expect(object[:class]).to equal value
+        expect(object.fetch :class).to equal value
       when :data
-        expect(object[:data]).to eq value
+        expect(object.fetch :data).to eq value
       when :ivars
-        expect(object[:ivars]).to eq value
+        expect(object.fetch :ivars).to eq value
+      when :methods
+        expect(object.fetch :methods).to eq value
+      when :superclass
+        expect(object.fetch :superclass).to equal value
       else
         raise "Unknown assertion type: #{assertion_type.inspect}"
       end
@@ -55,11 +59,15 @@ RSpec.describe BCI do
   end
 
   describe 'class' do
-    it 'defines classes the class as a constant under User'
-    it 'starts them with no instance variables'
-    it 'sets the class to Class'
-    it 'has no intance methods by default'
-    it 'sets the superclass to Object by default'
+    it 'defines classes as constants under Object' do
+      bci = interpret("class User; end")
+      user_class = bci.object_class[:constants][:User]
+      assert_object user_class,
+                    class:   bci.classy_class,
+                    ivars:   {},
+                    methods: {},
+                    superclass: bci.object_class
+    end
 
     describe 'evaluating the body' do
       it 'records method definitions'
