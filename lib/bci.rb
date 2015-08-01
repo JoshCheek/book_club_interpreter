@@ -56,7 +56,7 @@ class BCI
   end
 
   def interpret
-    interpret_ast @ast
+    interpret_ast @ast if @ast 
   end
 
   private

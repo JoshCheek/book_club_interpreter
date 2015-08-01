@@ -78,7 +78,7 @@ RSpec.describe BCI do
 
     it 'has no local variables' do
       bci = interpret("")
-      expect(bci.stack.last.locals).to be_empty
+      expect(bci.stack.last[:locals]).to be_empty
     end
   end
 
