@@ -21,6 +21,8 @@ RSpec.describe BCI do
         expect(object.fetch :methods).to eq value
       when :superclass
         expect(object.fetch :superclass).to equal value
+      when :method_names
+        expect(object.fetch(:methods).keys).to eq value
       else
         raise "Unknown assertion type: #{assertion_type.inspect}"
       end
@@ -82,8 +84,25 @@ RSpec.describe BCI do
                       data:  "abc"
       end
 
-      it 'records method definitions'
-      it 'evalutates in a binding for the class it is defining'
+      it 'records method definitions', t:true do
+        skip
+        bci = interpret("class User; end")
+        user_class = bci.object_class[:constants][:User]
+        assert_object user_class, method_names: []
+
+        bci = interpret("class User; def zomg; end; end")
+        user_class = bci.object_class[:constants][:User]
+        assert_object user_class, method_names: [:zomg]
+      end
+
+      it 'evalutates in a binding for the class it is defining' do
+        bci = interpret("class User; self; end")
+        user_class = bci.object_class[:constants][:User]
+        expect(bci.current_value).to equal user_class
+
+        bci = interpret("class User; self; end; self")
+        expect(bci.current_value).to equal bci.main_object
+      end
     end
   end
 

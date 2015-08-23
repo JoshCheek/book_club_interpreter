@@ -148,7 +148,22 @@ class BCI
       self.object_class[:constants][class_name] = klass
 
       body = ast.to_a[2]
+
+      binding = {
+        human_name:   class_name,
+        self:         klass,
+        locals:       {},
+        return_value: nil_object
+      }
+      stack.push(binding)
       interpret_ast(body) if body
+      stack.pop
+      stack.last[:return_value] = binding[:return_value]
+
+    when :def
+      require "pry"
+      binding.pry
+      expect(object)
 
     else raise "Unknown AST: #{ast.inspect}"
     end
