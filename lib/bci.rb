@@ -29,6 +29,7 @@ class BCI
     @ast, @stdout = ast, stdout
 
     self.classy_class = {
+      human_name: "Class",
       superclass: nil, # should be Module
       constants:  {},
       methods:    {},
@@ -39,6 +40,7 @@ class BCI
     classy_class[:class] = classy_class
 
     self.object_class = {
+      human_name: "Object",
       superclass: nil, # should be Kernel/BasicObject
       constants:  {},
       methods:    {},
@@ -53,6 +55,7 @@ class BCI
     }
 
     self.string_class = {
+      human_name: "String",
       superclass: object_class, # should be Module
       constants:  {},
       methods:    {},
@@ -62,6 +65,7 @@ class BCI
     }
 
     self.classy_nil_class = {
+      human_name: "NilClass",
       superclass: object_class, # should be Module
       constants:  {},
       methods:    {},
@@ -71,16 +75,19 @@ class BCI
     }
 
     self.nil_object = {
+      human_name: "nil",
       class: classy_nil_class,
       ivars: {},
     }
 
     self.main_object = {
+      human_name: "main",
       ivars: {},
       class: object_class,
     }
 
     toplevel_binding = {
+      human_name: "toplevel binding",
       self:         main_object,
       locals:       {},
       return_value: nil_object,
@@ -129,6 +136,7 @@ class BCI
     when :class
       class_name = ast.children[0].children.last
       klass      = {
+        human_name: class_name,
         class: classy_class,
         ivars: {},
 
