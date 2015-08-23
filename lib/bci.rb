@@ -161,9 +161,10 @@ class BCI
       stack.last[:return_value] = binding[:return_value]
 
     when :def
-      require "pry"
-      binding.pry
-      expect(object)
+
+      method_name = ast.to_a.first
+      method_body = ast.to_a.last
+      stack.last[:self][:methods][method_name] = method_body
 
     else raise "Unknown AST: #{ast.inspect}"
     end

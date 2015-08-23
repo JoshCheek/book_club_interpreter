@@ -84,8 +84,7 @@ RSpec.describe BCI do
                       data:  "abc"
       end
 
-      it 'records method definitions', t:true do
-        skip
+      it 'records method definitions' do
         bci = interpret("class User; end")
         user_class = bci.object_class[:constants][:User]
         assert_object user_class, method_names: []
