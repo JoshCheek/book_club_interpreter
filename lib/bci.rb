@@ -22,7 +22,8 @@ class BCI
                 :string_class,
                 :main_object,
                 :nil_object,
-                :classy_class
+                :classy_class,
+                :classy_nil_class
 
   def initialize(ast:, stdout:)
     @ast, @stdout = ast, stdout
@@ -60,6 +61,20 @@ class BCI
       class:      classy_class,
     }
 
+    self.classy_nil_class = {
+      superclass: object_class, # should be Module
+      constants:  {},
+      methods:    {},
+
+      ivars:      {},
+      class:      classy_class,
+    }
+
+    self.nil_object = {
+      class: classy_nil_class,
+      ivars: {},
+    }
+
     self.main_object = {
       ivars: {},
       class: object_class,
@@ -68,7 +83,7 @@ class BCI
     toplevel_binding = {
       self:         main_object,
       locals:       {},
-      return_value: ??,
+      return_value: nil_object,
     }
 
     self.stack = [toplevel_binding]
@@ -110,15 +125,22 @@ class BCI
     when :self
       self.current_value = stack.last[:self]
     when :nil
-      self.current_value = stack.last[:nil]
+      self.current_value = nil_object
     when :class
       class_name = ast.children[0].children.last
-      self.object_class[:constants][class_name] = {
+      klass      = {
         class: classy_class,
         ivars: {},
-        methods: {},
-        superclass: object_class
+
+        methods:    {},
+        constants:  {},
+        superclass: object_class,
       }
+
+      self.object_class[:constants][class_name] = klass
+
+      body = ast.to_a[2]
+      interpret_ast(body) if body
 
     else raise "Unknown AST: #{ast.inspect}"
     end

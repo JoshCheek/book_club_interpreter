@@ -70,8 +70,20 @@ RSpec.describe BCI do
     end
 
     describe 'evaluating the body' do
+      it 'defaults to nil' do
+        bci = interpret("class User; end")
+        expect(bci.current_value).to equal bci.nil_object
+      end
+
+      it 'returns the last line in the body' do
+        bci = interpret("class User; 'abc'; end")
+        assert_object bci.current_value,
+                      class: bci.string_class,
+                      data:  "abc"
+      end
+
       it 'records method definitions'
-      it 'returns the last line in the body'
+      it 'evalutates in a binding for the class it is defining'
     end
   end
 
