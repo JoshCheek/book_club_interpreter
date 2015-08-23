@@ -27,11 +27,23 @@ class BCI
   def initialize(ast:, stdout:)
     @ast, @stdout = ast, stdout
 
-    self.classy_class = {}
+    self.classy_class = {
+      superclass: nil, # should be Module
+      constants:  {},
+      methods:    {},
+
+      class:      nil, # itself
+      ivars:      {},
+    }
+    classy_class[:class] = classy_class
 
     self.object_class = {
-      constants: {},
-      class: classy_class
+      superclass: nil, # should be Kernel/BasicObject
+      constants:  {},
+      methods:    {},
+
+      class:      classy_class,
+      ivars:      {},
 
       # * instance methods
       # * pointer to its superclass
@@ -40,12 +52,17 @@ class BCI
     }
 
     self.string_class = {
+      superclass: object_class, # should be Module
+      constants:  {},
+      methods:    {},
+
+      ivars:      {},
+      class:      classy_class,
     }
 
     self.main_object = {
-      ivars:        {},
-      class:        object_class,
-      nil:          nil_object
+      ivars: {},
+      class: object_class,
     }
 
     toplevel_binding = {
@@ -74,7 +91,7 @@ class BCI
   def interpret_ast(ast)
     case ast.type
     when :str
-      data = ast.children[0]
+      data = ast.to_a[0]
       self.current_value = {
         class: string_class,
         data:  data

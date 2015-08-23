@@ -63,9 +63,9 @@ RSpec.describe BCI do
       bci = interpret("class User; end")
       user_class = bci.object_class[:constants][:User]
       assert_object user_class,
-                    class:   bci.classy_class,
-                    ivars:   {},
-                    methods: {},
+                    class:      bci.classy_class,
+                    ivars:      {},
+                    methods:    {},
                     superclass: bci.object_class
     end
 
