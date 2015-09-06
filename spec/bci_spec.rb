@@ -169,6 +169,13 @@ RSpec.describe BCI do
       bci = interpret("def a; end; a")
       expect(bci.current_value).to equal bci.nil_object
     end
+
+    it 'evaluates arguments in the context of the caller' do
+      bci = interpret("def a(b); b; end; b='Josh'; a(b);")
+      assert_object bci.current_value,
+                        class: bci.string_class,
+                        data: "Josh"
+    end
   end
 
   describe 'instance variables' do

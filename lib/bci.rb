@@ -193,8 +193,9 @@ class BCI
       else
         target = stack.last.fetch(:self)
       end
-      raise 'test arg passing' if arg_asts.any?
-      invoke_method target, method_name, []
+
+      arguments = arg_asts.map {|arg| interpret_ast(arg)}
+      invoke_method target, method_name, arguments
 
     when :const
       namespace_ast, name = ast.to_a
@@ -211,11 +212,13 @@ class BCI
 
   def invoke_method(target, method_name, args)
     method  = find_method(target, method_name)
+    locals  = {}
+    locals[method[:body].children.first] = args.first
     binding = {
       human_name:   method_name.to_s,
       self:         target,
-      locals:       {},
-      return_value: nil_object,
+      locals:       locals,
+      return_value: nil_object
     }
     stack.push(binding)
     case method[:type]
