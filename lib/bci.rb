@@ -42,7 +42,7 @@ class BCI
       superclass: nil, # should be Module
       constants:  {},
       methods:    {
-        new: { type: :internal, body: new_method },
+        new: { type: :internal, args: [], body: new_method},
       },
 
       class:      nil, # itself
@@ -57,6 +57,7 @@ class BCI
       methods:    {
         initialize: {
           type: :internal,
+          args: [],
           body: lambda { }, # FIXME: should emit nil?
         }
       },
@@ -184,7 +185,8 @@ class BCI
     when :def
       method_name = ast.to_a.first
       method_body = ast.to_a.last
-      deftargets.last[:methods][method_name] = {type: :ast, body: method_body}
+      method_args = ast.to_a[1].to_a
+      deftargets.last[:methods][method_name] = {type: :ast, args: method_args,  body: method_body}
 
     when :send
       target_ast, method_name, *arg_asts = ast.to_a
@@ -213,7 +215,11 @@ class BCI
   def invoke_method(target, method_name, args)
     method  = find_method(target, method_name)
     locals  = {}
-    locals[method[:body].children.first] = args.first
+
+    method[:args].zip(args).map do |pair|
+      locals[pair.first.to_a.first] = pair.last
+    end
+
     binding = {
       human_name:   method_name.to_s,
       self:         target,

@@ -170,11 +170,18 @@ RSpec.describe BCI do
       expect(bci.current_value).to equal bci.nil_object
     end
 
-    it 'evaluates arguments in the context of the caller' do
+    it 'evaluates one argument in the context of the caller' do
       bci = interpret("def a(b); b; end; b='Josh'; a(b);")
       assert_object bci.current_value,
                         class: bci.string_class,
                         data: "Josh"
+    end
+
+    it 'evaluates multiple arguments in the context of the caller' do
+      bci = interpret("def a(b, c); b; c; end; b='Josh'; c='Lovisa'; a(b, c);")
+      assert_object bci.current_value,
+                        class: bci.string_class,
+                        data: "Lovisa"
     end
   end
 
