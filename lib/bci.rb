@@ -23,16 +23,27 @@ class BCI
                 :main_object,
                 :nil_object,
                 :classy_class,
-                :classy_nil_class
+                :classy_nil_class,
+                :deftargets
 
   def initialize(ast:, stdout:)
     @ast, @stdout = ast, stdout
+
+    new_method = lambda do
+      klass    = stack.last[:self]
+      instance = { class: klass, instance_variables: {} }
+      args     = [] # FIXME: need to forward them
+      invoke_method instance, :initialize, args
+      stack.last[:return_value] = instance
+    end
 
     self.classy_class = {
       human_name: "Class",
       superclass: nil, # should be Module
       constants:  {},
-      methods:    {},
+      methods:    {
+        new: { type: :internal, body: new_method },
+      },
 
       class:      nil, # itself
       ivars:      {},
@@ -43,7 +54,12 @@ class BCI
       human_name: "Object",
       superclass: nil, # should be Kernel/BasicObject
       constants:  {},
-      methods:    {},
+      methods:    {
+        initialize: {
+          type: :internal,
+          body: lambda { }, # FIXME: should emit nil?
+        }
+      },
 
       class:      classy_class,
       ivars:      {},
@@ -93,7 +109,8 @@ class BCI
       return_value: nil_object,
     }
 
-    self.stack = [toplevel_binding]
+    self.stack      = [toplevel_binding]
+    self.deftargets = [object_class]
   end
 
   def current_value
@@ -155,18 +172,78 @@ class BCI
         locals:       {},
         return_value: nil_object
       }
+
       stack.push(binding)
+      deftargets.push(klass)
+
       interpret_ast(body) if body
+      deftargets.pop
       stack.pop
       stack.last[:return_value] = binding[:return_value]
 
     when :def
-
       method_name = ast.to_a.first
       method_body = ast.to_a.last
-      stack.last[:self][:methods][method_name] = method_body
+      deftargets.last[:methods][method_name] = {type: :ast, body: method_body}
+
+    when :send
+      target_ast, method_name, *arg_asts = ast.to_a
+      if target_ast
+        target = interpret_ast(target_ast)
+      else
+        target = stack.last.fetch(:self)
+      end
+      raise 'test arg passing' if arg_asts.any?
+      invoke_method target, method_name, []
+
+    when :const
+      namespace_ast, name = ast.to_a
+      if namespace_ast
+        namespace = interpret_ast namespace_ast
+      else
+        namespace = object_class
+      end
+      stack.last[:return_value] = namespace[:constants].fetch(name)
 
     else raise "Unknown AST: #{ast.inspect}"
+    end
+  end
+
+  def invoke_method(target, method_name, args)
+    method  = find_method(target, method_name)
+    binding = {
+      human_name:   method_name.to_s,
+      self:         target,
+      locals:       {},
+      return_value: nil_object,
+    }
+    stack.push(binding)
+    case method[:type]
+    when :internal then method[:body].call
+    when :ast
+      if method[:body]
+        interpret_ast(method[:body])
+      else
+        stack.last[:return_value] = nil_object
+      end
+    else raise "WHAT KIND OF METHOD IS THIS? #{method.inspect}"
+    end
+    stack.pop
+    stack.last[:return_value] = binding[:return_value]
+  end
+
+  def find_method(object, method_name)
+    klass = object[:class]
+    loop do
+      break unless klass
+      break if klass[:methods].include?(method_name)
+      klass = klass[:superclass]
+    end
+
+    if klass && klass[:methods][method_name]
+      klass[:methods][method_name]
+    else
+      raise("This interpreter can't yet handle NoMethodErros :P `#{method_name.inspect}`")
     end
   end
 end

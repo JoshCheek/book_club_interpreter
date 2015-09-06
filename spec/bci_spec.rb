@@ -23,6 +23,10 @@ RSpec.describe BCI do
         expect(object.fetch :superclass).to equal value
       when :method_names
         expect(object.fetch(:methods).keys).to eq value
+      when :classname
+        expect(object.fetch(:class).fetch(:human_name)).to eq value
+      when :has_method
+        expect(object.fetch(:methods).keys).to include value
       else
         raise "Unknown assertion type: #{assertion_type.inspect}"
       end
@@ -102,30 +106,69 @@ RSpec.describe BCI do
         bci = interpret("class User; self; end; self")
         expect(bci.current_value).to equal bci.main_object
       end
+
+      it 'sets the superclass to Object by default', t:true do
+        bci = interpret('class A; end; A')
+        assert_object bci.current_value, superclass: bci.object_class
+      end
     end
   end
 
   describe 'toplevel' do
+    describe 'main' do
+      it 'is an instance of Object with no instance variables' do
+        bci = interpret 'self'
+        assert_object bci.main_object,
+                      class: bci.object_class,
+                      ivars: {}
+      end
+      it 'has to_s and inspect defined on its singleton class to return the string "main"'
+    end
+
     it 'sets self to main' do
       bci = interpret("self")
       expect(bci.current_value).to equal bci.main_object
-      assert_object bci.main_object,
-                    class: bci.object_class,
-                    ivars: {}
     end
 
     it 'has no local variables' do
       bci = interpret("")
       expect(bci.stack.last[:locals]).to be_empty
     end
+
+    it 'defines methods in Object' do
+      bci = interpret "def lol; end"
+      assert_object bci.object_class, has_method: :lol
+    end
   end
 
   describe 'invoking methods' do
-    it 'invokes it on "self" if no target is provided'
-    it 'invokes it on the target, if the target is provided'
-    it 'has its own set of local variables'
-    it 'has a return value'
-    it 'defaults the return value to nil'
+    it 'invokes it on "self" if no target is provided' do
+      bci = interpret("def a; self; end; a")
+      expect(bci.current_value).to equal bci.main_object
+    end
+
+    it 'invokes it on the target, if the target is provided' do
+      bci = interpret("class A; def b; self; end; end; A.new.b")
+      assert_object bci.current_value, classname: :A
+    end
+
+    it 'has its own set of local variables' do
+      skip
+      bci = interpret("a = 1; def b; a = 2; a; end; a + b")
+      assert_object bci.current_value, classname: :A
+    end
+
+    it 'has a return value' do
+      bci = interpret("def a; 'whatev'; end; a")
+      assert_object bci.current_value,
+                    class: bci.string_class,
+                    data:  "whatev"
+    end
+
+    it 'defaults the return value to nil' do
+      bci = interpret("def a; end; a")
+      expect(bci.current_value).to equal bci.nil_object
+    end
   end
 
   describe 'instance variables' do
