@@ -148,18 +148,17 @@ class BCI
       name = ast.children[0]
       self.current_value = stack.last[:locals][name]
     when :ivasgn
-      name = ast.to_a.first
-      value = ast.to_a.last
-
+      name, value = ast.to_a
       ivars = stack.last[:self][:ivars]
-      ivars[name] = value
-
       interpret_ast value
-    when :ivar
-      name = ast.to_a.first
-      ivars = stack.last[:self][:ivars]
+      ivars[name] = stack.last[:return_value]
 
-      interpret_ast ivars[name]
+    when :ivar
+      name  = ast.to_a.first
+      ivars = stack.last[:self][:ivars]
+      value = ivars[name] || nil_object
+      self.current_value = value
+
     when :self
       self.current_value = stack.last[:self]
     when :nil

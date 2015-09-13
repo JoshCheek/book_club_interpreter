@@ -185,7 +185,7 @@ RSpec.describe BCI do
     end
   end
 
-  describe 'instance variables', current: true do
+  describe 'instance variables' do
     specify 'setting an ivar emits the ivar as the current value' do
       bci = interpret("@a = 'b'")
       assert_object bci.current_value,
@@ -195,6 +195,7 @@ RSpec.describe BCI do
 
     it 'getting an ivar sets it as the current value' do
       bci = interpret("@a = 'b'; 'c'; @a")
+
       assert_object bci.current_value,
                     class: bci.string_class,
                     data:  "b"
@@ -203,6 +204,12 @@ RSpec.describe BCI do
     it 'stores the ivars on self' do
       bci = interpret("@a = 'b'")
       assert_object bci.main_object, ivars: [:@a]
+    end
+
+    it 'defaults instance variables to nil' do
+      bci = interpret("@a")
+      expect(bci.current_value.equal?(bci.nil_object))
+        .to be_truthy
     end
   end
 
