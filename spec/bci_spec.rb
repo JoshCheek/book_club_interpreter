@@ -12,7 +12,7 @@ RSpec.describe BCI do
     assertions.each do |assertion_type, value|
       case assertion_type
       when :class
-        expect(object.fetch :class).to equal value
+        expect(object.fetch(:class).equal? value).to be_truthy
       when :data
         expect(object.fetch :data).to eq value
       when :ivars
