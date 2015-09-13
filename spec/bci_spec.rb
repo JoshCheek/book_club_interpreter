@@ -15,8 +15,6 @@ RSpec.describe BCI do
         expect(object.fetch(:class).equal? value).to be_truthy
       when :data
         expect(object.fetch :data).to eq value
-      when :ivars
-        expect(object.fetch :ivars).to eq value
       when :methods
         expect(object.fetch :methods).to eq value
       when :superclass
@@ -28,9 +26,7 @@ RSpec.describe BCI do
       when :has_method
         expect(object.fetch(:methods).keys).to include value
       when :ivars
-        value.each do |ivar|
-          expect(object.fetch(:ivars)).to include ivar
-        end
+        expect(object.fetch(:ivars).keys).to eq value
       else
         raise "Unknown assertion type: #{assertion_type.inspect}"
       end
@@ -74,7 +70,7 @@ RSpec.describe BCI do
       user_class = bci.object_class[:constants][:User]
       assert_object user_class,
                     class:      bci.classy_class,
-                    ivars:      {},
+                    ivars:      [],
                     methods:    {},
                     superclass: bci.object_class
     end
@@ -124,7 +120,7 @@ RSpec.describe BCI do
         bci = interpret 'self'
         assert_object bci.main_object,
                       class: bci.object_class,
-                      ivars: {}
+                      ivars: []
       end
       it 'has to_s and inspect defined on its singleton class to return the string "main"'
     end

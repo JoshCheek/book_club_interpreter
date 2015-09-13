@@ -155,6 +155,11 @@ class BCI
       ivars[name] = value
 
       interpret_ast value
+    when :ivar
+      name = ast.to_a.first
+      ivars = stack.last[:self][:ivars]
+
+      interpret_ast ivars[name]
     when :self
       self.current_value = stack.last[:self]
     when :nil
