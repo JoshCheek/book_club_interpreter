@@ -27,6 +27,10 @@ RSpec.describe BCI do
         expect(object.fetch(:class).fetch(:human_name)).to eq value
       when :has_method
         expect(object.fetch(:methods).keys).to include value
+      when :ivars
+        value.each do |ivar|
+          expect(object.fetch(:ivars)).to include ivar
+        end
       else
         raise "Unknown assertion type: #{assertion_type.inspect}"
       end
@@ -107,7 +111,7 @@ RSpec.describe BCI do
         expect(bci.current_value).to equal bci.main_object
       end
 
-      it 'sets the superclass to Object by default', t:true do
+      it 'sets the superclass to Object by default' do
         bci = interpret('class A; end; A')
         assert_object bci.current_value, superclass: bci.object_class
       end
@@ -185,8 +189,25 @@ RSpec.describe BCI do
     end
   end
 
-  describe 'instance variables' do
-    it 'sets and gets these variables from self'
+  describe 'instance variables', current: true do
+    specify 'setting an ivar emits the ivar as the current value' do
+      bci = interpret("@a = 'b'")
+      assert_object bci.current_value,
+                    class: bci.string_class,
+                    data:  "b"
+    end
+
+    it 'getting an ivar sets it as the current value' do
+      bci = interpret("@a = 'b'; 'c'; @a")
+      assert_object bci.current_value,
+                    class: bci.string_class,
+                    data:  "b"
+    end
+
+    it 'stores the ivars on self' do
+      bci = interpret("@a = 'b'")
+      assert_object bci.main_object, ivars: [:@a]
+    end
   end
 
   describe 'builtin methods' do

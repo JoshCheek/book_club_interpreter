@@ -83,7 +83,7 @@ class BCI
 
     self.classy_nil_class = {
       human_name: "NilClass",
-      superclass: object_class, # should be Module
+      superclass: object_class,
       constants:  {},
       methods:    {},
 
