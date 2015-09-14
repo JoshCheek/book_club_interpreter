@@ -41,7 +41,8 @@ RSpec.describe BCI do
     bci = interpret("'abc'")
     assert_object bci.current_value,
                   class: bci.string_class,
-                  data:  "abc"
+                  data:  "abc",
+                  ivars: []
   end
 
   it 'interprets nil' do

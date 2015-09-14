@@ -140,7 +140,8 @@ class BCI
       data = ast.to_a[0]
       self.current_value = {
         class: string_class,
-        data:  data
+        ivars: {},
+        data:  data,
       }
     when :begin
       ast.children.each do |child|
