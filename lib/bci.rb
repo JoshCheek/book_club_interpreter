@@ -64,10 +64,7 @@ class BCI
         puts: {
           type: :internal,
           args: [:string],
-          body: lambda do
-           stdout << stack.last[:locals][:string][:data]
-           stack.last[:return_value] = nil_object
-          end
+          body: lambda { stdout << stack.last[:locals][:string][:data] }
         }
       },
 
@@ -206,7 +203,7 @@ class BCI
     when :def
       method_name = ast.to_a.first
       method_body = ast.to_a.last
-      method_args = ast.to_a[1].to_a.map(&:first)
+      method_args = ast.to_a[1].to_a.map { |arg| arg.to_a.first }
       deftargets.last[:methods][method_name] = {type: :ast, args: method_args,  body: method_body}
 
     when :send

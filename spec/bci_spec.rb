@@ -217,11 +217,8 @@ RSpec.describe BCI do
     describe 'Object (technically Kernel ;)' do
       it 'has a puts method, which sends strings to the stdout, with a trailing newline' do
         bci = interpret("puts 'abc'")
-
         expect(bci.stdout).to eq "abc"
-
-        assert_object bci.current_value,
-                      class: bci.nil_object
+        expect(bci.current_value).to equal bci.nil_object
       end
     end
   end
