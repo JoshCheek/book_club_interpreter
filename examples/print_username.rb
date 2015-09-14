@@ -16,7 +16,7 @@ class User
   end
 
   def friends
-    "Austin and Lovisa!"
+    "Austin and Lovisa (but not Jack wtf!?)!"
   end
 end
 
