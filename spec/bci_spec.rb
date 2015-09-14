@@ -215,6 +215,24 @@ RSpec.describe BCI do
   end
 
   describe 'builtin methods' do
+    describe 'Class' do
+      it 'creates a new instance of the class, with no ivars, and initializes it' do
+        bci = interpret 'class A
+                           def initialize(b)
+                             @b = b
+                           end
+                           def b
+                             @b
+                           end
+                         end
+                         A.new("hello").b'
+
+        assert_object bci.current_value,
+                      class: bci.string_class,
+                      data:  "hello"
+      end
+    end
+
     describe 'Object (technically Kernel ;)' do
       it 'has a puts method, which sends strings to the stdout, with a trailing newline' do
         bci = interpret("puts 'abc'")

@@ -32,8 +32,8 @@ class BCI
 
     new_method = lambda do
       klass    = stack.last[:self]
-      instance = { class: klass, instance_variables: {} }
-      args     = [] # FIXME: need to forward them
+      instance = { class: klass, ivars: {} }
+      args     = [stack.last[:locals][:arg]] # pretty fucking iffy
       invoke_method instance, :initialize, args
       stack.last[:return_value] = instance
     end
@@ -43,7 +43,7 @@ class BCI
       superclass: nil, # should be Module
       constants:  {},
       methods:    {
-        new: { type: :internal, args: [], body: new_method},
+        new: { type: :internal, args: [:arg], body: new_method},
       },
 
       class:      nil, # itself
