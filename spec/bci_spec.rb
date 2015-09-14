@@ -12,7 +12,8 @@ RSpec.describe BCI do
     assertions.each do |assertion_type, value|
       case assertion_type
       when :class
-        expect(object.fetch(:class).equal? value).to be_truthy
+        correct_class = object.fetch(:class).equal? value
+        expect(correct_class).to be_truthy, "Expected #{describe_object value}'s class to be #{describe_object object}"
       when :data
         expect(object.fetch :data).to eq value
       when :methods
@@ -27,9 +28,22 @@ RSpec.describe BCI do
         expect(object.fetch(:methods).keys).to include value
       when :ivars
         expect(object.fetch(:ivars).keys).to eq value
+      when :is
+        expect(object.equal?(value)).to be_truthy,
+          "Expected #{describe_object value} to be #{describe_object object}"
       else
         raise "Unknown assertion type: #{assertion_type.inspect}"
       end
+    end
+  end
+
+  def describe_object(object)
+    if nil.equal? object
+      raise "ACTUAL RUBY NIL (vs our interpreter's nil)!"
+    elsif object.key?(:human_name)
+      "{human_name: #{object.fetch :human_name}, ...}"
+    else
+      "{class: #{object.fetch(:class).fetch(:human_name)}, ...}"
     end
   end
 
@@ -47,7 +61,7 @@ RSpec.describe BCI do
 
   it 'interprets nil' do
     bci = interpret('nil')
-    expect(bci.current_value).to equal bci.nil_object
+    assert_object bci.current_value, is: bci.nil_object
   end
 
   it 'interprets multiple expressions' do
@@ -79,7 +93,7 @@ RSpec.describe BCI do
     describe 'evaluating the body' do
       it 'defaults to nil' do
         bci = interpret("class User; end")
-        expect(bci.current_value).to equal bci.nil_object
+        assert_object bci.current_value, is: bci.nil_object
       end
 
       it 'returns the last line in the body' do
@@ -102,10 +116,10 @@ RSpec.describe BCI do
       it 'evalutates in a binding for the class it is defining' do
         bci = interpret("class User; self; end")
         user_class = bci.object_class[:constants][:User]
-        expect(bci.current_value).to equal user_class
+        assert_object bci.current_value, is: user_class
 
         bci = interpret("class User; self; end; self")
-        expect(bci.current_value).to equal bci.main_object
+        assert_object bci.current_value, is: bci.main_object
       end
 
       it 'sets the superclass to Object by default' do
@@ -128,7 +142,7 @@ RSpec.describe BCI do
 
     it 'sets self to main' do
       bci = interpret("self")
-      expect(bci.current_value).to equal bci.main_object
+      assert_object bci.current_value, is: bci.main_object
     end
 
     it 'has no local variables' do
@@ -145,7 +159,7 @@ RSpec.describe BCI do
   describe 'invoking methods' do
     it 'invokes it on "self" if no target is provided' do
       bci = interpret("def a; self; end; a")
-      expect(bci.current_value).to equal bci.main_object
+      assert_object bci.current_value, is: bci.main_object
     end
 
     it 'invokes it on the target, if the target is provided' do
@@ -154,9 +168,11 @@ RSpec.describe BCI do
     end
 
     it 'has its own set of local variables' do
-      skip
-      bci = interpret("a = 1; def b; a = 2; a; end; a + b")
-      assert_object bci.current_value, classname: :A
+      bci = interpret("a = 'main'; def c; a = 'from c'; a; end; c")
+      assert_object bci.current_value, data: 'from c'
+
+      bci = interpret("a = 'main'; def c; a = 'from c'; a; end; c; a")
+      assert_object bci.current_value, data: 'main'
     end
 
     it 'has a return value' do
@@ -168,7 +184,7 @@ RSpec.describe BCI do
 
     it 'defaults the return value to nil' do
       bci = interpret("def a; end; a")
-      expect(bci.current_value).to equal bci.nil_object
+      assert_object bci.current_value, is: bci.nil_object
     end
 
     it 'evaluates one argument in the context of the caller' do
@@ -209,8 +225,7 @@ RSpec.describe BCI do
 
     it 'defaults instance variables to nil' do
       bci = interpret("@a")
-      expect(bci.current_value.equal?(bci.nil_object))
-        .to be_truthy
+      assert_object bci.current_value, is: bci.nil_object
     end
   end
 
@@ -237,7 +252,7 @@ RSpec.describe BCI do
       it 'has a puts method, which sends strings to the stdout, with a trailing newline' do
         bci = interpret('puts "abc"; puts "def\n"')
         expect(bci.stdout).to eq "abc\ndef\n"
-        expect(bci.current_value).to equal bci.nil_object
+        assert_object bci.current_value, is: bci.nil_object
       end
     end
   end
