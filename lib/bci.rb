@@ -64,7 +64,11 @@ class BCI
         puts: {
           type: :internal,
           args: [:string],
-          body: lambda { stdout << stack.last[:locals][:string][:data] }
+          body: lambda {
+            to_print = stack.last[:locals][:string][:data]
+            stdout << to_print
+            stdout << "\n" unless to_print[-1] == "\n"
+          }
         }
       },
 
