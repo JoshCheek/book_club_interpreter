@@ -24,7 +24,8 @@ class BCI
                 :nil_object,
                 :classy_class,
                 :classy_nil_class,
-                :deftargets
+                :deftargets,
+                :stdout
 
   def initialize(ast:, stdout:)
     @ast, @stdout = ast, stdout
@@ -59,6 +60,14 @@ class BCI
           type: :internal,
           args: [],
           body: lambda { }, # FIXME: should emit nil?
+        },
+        puts: {
+          type: :internal,
+          args: [:string],
+          body: lambda do
+           stdout << stack.last[:locals][:string][:data]
+           stack.last[:return_value] = nil_object
+          end
         }
       },
 
@@ -197,7 +206,7 @@ class BCI
     when :def
       method_name = ast.to_a.first
       method_body = ast.to_a.last
-      method_args = ast.to_a[1].to_a
+      method_args = ast.to_a[1].to_a.map(&:first)
       deftargets.last[:methods][method_name] = {type: :ast, args: method_args,  body: method_body}
 
     when :send
@@ -228,8 +237,8 @@ class BCI
     method  = find_method(target, method_name)
     locals  = {}
 
-    method[:args].zip(args).map do |pair|
-      locals[pair.first.to_a.first] = pair.last
+    method[:args].zip(args).map do |name, value|
+      locals[name] = value
     end
 
     binding = {

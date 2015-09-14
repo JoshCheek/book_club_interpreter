@@ -3,7 +3,7 @@ require 'bci'
 RSpec.describe BCI do
   def interpret(code)
     ast = BCI.parse(code)
-    bci = BCI.new(ast: ast, stdout: "idk")
+    bci = BCI.new(ast: ast, stdout: "")
     bci.interpret
     bci
   end
@@ -215,7 +215,14 @@ RSpec.describe BCI do
 
   describe 'builtin methods' do
     describe 'Object (technically Kernel ;)' do
-      it 'has a puts method, which sends strings to the stdout, with a trailing newline'
+      it 'has a puts method, which sends strings to the stdout, with a trailing newline' do
+        bci = interpret("puts 'abc'")
+
+        expect(bci.stdout).to eq "abc"
+
+        assert_object bci.current_value,
+                      class: bci.nil_object
+      end
     end
   end
 end
